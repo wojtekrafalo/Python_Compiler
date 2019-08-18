@@ -1,45 +1,9 @@
 import ply.lex as lex
-
-tokens = [
-    'IDENTIFIER',
-    'NUMBER',
-    'COMMENT',
-    'DECLARE',
-    'IN',
-    'END',
-    'IF',
-    'THEN',
-    'ELSE',
-    'ENDIF',
-    'WHILE',
-    'DO',
-    'ENDWHILE',
-    'ENDDO',
-    'FOR',
-    'FROM',
-    'TO',
-    'ENDFOR',
-    'DOWNTO',
-    'READ',
-    'WRITE',
-    'SEMICOLON',
-    'COLON',
-    'PLUS',
-    'MINUS',
-    'MULTIPLY',
-    'DIVIDE',
-    'MODULO',
-    'BRACKET_LEFT',
-    'BRACKET_RIGHT',
-    'EQUALS',
-    'NOT',
-    'LESS_THAN',
-    'GREATER_THAN',
-    'END_LINE'
-]
+from src.compiler_token_list import tokens as tokens
+tokens = tokens
 
 t_COMMENT = r'(\[[^\]]*\])'
-t_ignore = r' \t\r\n\f\v'
+t_ignore = r' '
 
 
 def t_NUMBER(t):
@@ -86,13 +50,15 @@ t_EQUALS = r'\='
 t_NOT = r'\!'
 t_LESS_THAN = r'\<'
 t_GREATER_THAN = r'\>'
-t_END_LINE = r'\n'
 
 
 def t_error(t):
+    r'.'
     # print("Syntax error")
     t.lexer.skip(1)
-    return 'ERROR'
+    print("Unexpected value: " + str(t.value))
+    exit(-1)
+    # return 'ERROR'
 
 
 lexer = lex.lex()

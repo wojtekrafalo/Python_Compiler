@@ -1,7 +1,8 @@
 import ply.lex as lex
-from src.compiler_token_list import tokens as tokens
+from src.compiler.compiler_token_list import tokens as tokens
 tokens = tokens
 
+# TODO: Do something with comments. This sucks.
 t_COMMENT = r'(\[[^\]]*\])'
 t_ignore = r' '
 

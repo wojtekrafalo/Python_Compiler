@@ -1,7 +1,7 @@
 import ply.yacc as yacc
 import ply.lex as lex
 import sys
-from src import grammar_parser
+from src.compiler import grammar_parser
 
 print("HELLO WORLD")
 

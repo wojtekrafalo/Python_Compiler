@@ -1,8 +1,8 @@
 import ply.yacc as yacc
 import ply.lex as lex
 import sys
-from src import grammar_lexer
-from src.compiler_token_list import tokens as tokens
+from src.compiler import grammar_lexer
+from src.compiler.compiler_token_list import tokens as tokens
 tokens = tokens
 
 
@@ -99,7 +99,7 @@ parser = yacc.yacc()
 
 # TODO: Make a normal ignoring whitespaces in both grammars ;)
 try:
-    with open('test_files\\test_1.txt', 'r') as file:
+    with open('..\\test_files\\test_1.txt', 'r') as file:
         data = file.read()
         data = data.replace('\n', '')
         data = data.replace('\t', '')

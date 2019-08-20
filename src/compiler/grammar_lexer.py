@@ -2,9 +2,8 @@ import ply.lex as lex
 from src.compiler.compiler_token_list import tokens as tokens
 tokens = tokens
 
-# TODO: Do something with comments. This sucks.
-t_COMMENT = r'(\[[^\]]*\])'
-t_ignore = r' '
+t_ignore = r' \n'
+t_ignore_COMMENT = r'(\[[^\]]*\])'
 
 
 def t_NUMBER(t):
@@ -51,6 +50,12 @@ t_EQUALS = r'\='
 t_NOT = r'\!'
 t_LESS_THAN = r'\<'
 t_GREATER_THAN = r'\>'
+
+
+# Define a rule so we can track line numbers
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 
 
 def t_error(t):

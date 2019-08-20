@@ -1,7 +1,6 @@
 tokens = [
     'IDENTIFIER',
     'NUMBER',
-    'COMMENT',
     'DECLARE',
     'IN',
     'END',

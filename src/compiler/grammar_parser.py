@@ -1,8 +1,10 @@
 import ply.yacc as yacc
-import ply.lex as lex
-import sys
-from src.compiler import grammar_lexer
+from src.compiler.grammar_lexer import lexer
 from src.compiler.compiler_token_list import tokens as tokens
+from src.compiler.tree.DeclarationsNode import DeclarationsNode
+from src.compiler.tree.ProgramNode import ProgramNode
+from src.compiler.Validator import validate_declarations, DeclarationError
+
 tokens = tokens
 
 
@@ -10,8 +12,7 @@ def p_error(p):
     # """
     # error : ERROR
     # """
-    print("SYNTAX ERROR: " + str(p.value))
-    # print("SYNTAX ERROR.")
+    print("Error at line: " + str(lexer.lineno) + "\nFound at: " + str(p.value))
     exit(-1)
 
 
@@ -19,7 +20,8 @@ def p_program(p):
     """
     program : DECLARE declarations IN commands END
     """
-    print(p[1])
+    print(p[2])
+    decl = DeclarationsNode(p[2])
 
 
 def p_declarations(p):
@@ -28,6 +30,19 @@ def p_declarations(p):
                  | declarations IDENTIFIER BRACKET_LEFT NUMBER COLON NUMBER BRACKET_RIGHT SEMICOLON
                  | empty
     """
+    try:
+        validate_declarations(p)
+
+        if len(p) == 4:
+            p[1].append(p[2])
+            p[0] = p[1]
+        elif len(p) == 9:
+            p[1].append((p[2], p[4], p[6]))
+            p[0] = p[1]
+        elif len(p) == 2:
+            p[0] = []
+    except DeclarationError as err:
+        print_error_message(err)
 
 
 def p_commands(p):
@@ -86,6 +101,7 @@ def p_identifier(p):
                | IDENTIFIER BRACKET_LEFT IDENTIFIER BRACKET_RIGHT
                | IDENTIFIER BRACKET_LEFT NUMBER BRACKET_RIGHT
     """
+    print("NUMBER:" + str(lexer.lineno))
 
 
 def p_empty(p):
@@ -97,16 +113,7 @@ def p_empty(p):
 
 parser = yacc.yacc()
 
-# TODO: Make a normal ignoring whitespaces in both grammars ;)
-try:
-    with open('..\\test_files\\test_1.txt', 'r') as file:
-        data = file.read()
-        data = data.replace('\n', '')
-        data = data.replace('\t', '')
-    s = data
-    parser.parse(s)
-except FileNotFoundError:
-    print("File not found")
-except EOFError:
+
+def print_error_message(err):
+    print("Error at line: " + str(lexer.lineno) + "\n" + err.message.format(err))
     exit(-1)
-print("END_OF_PARSER")

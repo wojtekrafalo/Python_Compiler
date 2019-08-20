@@ -1,6 +1,5 @@
 tokens = [
     'HALT',
-    'COMMENT',
     'REG',
     'LABEL',
     'ERROR',
@@ -9,5 +8,6 @@ tokens = [
     'JUMP_1',
     'JUMP_2',
     'NEW_LINE',
-    'SPACE'
+    'SPACE',
+    'COMMENT'
 ]

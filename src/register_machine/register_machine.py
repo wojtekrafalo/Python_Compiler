@@ -4,7 +4,7 @@ import random
 
 def run_machine(file):
     commands = read_file(file)
-    print(commands)
+    # print(commands)
 
     memory = []
     registers = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -15,7 +15,7 @@ def run_machine(file):
         registers[i] = random.randint(0, 100)
 
     command_tuple = commands[comm_NO]
-    print("HERE!!!")
+    # print("HERE!!!")
     while command_tuple[0] != 'HALT':
         command_tuple = commands[comm_NO]
 
@@ -26,7 +26,8 @@ def run_machine(file):
             comm_NO = comm_NO + 1
 
         elif command_tuple[0] == "PUT":
-            print("> " + str(registers[command_tuple[1]]))
+
+            print("> " + str(registers[command_tuple[1]]) + ". shit: " + str(comm_NO))
             time_of_processing += 100
             comm_NO = comm_NO + 1
 
@@ -101,59 +102,11 @@ def run_machine(file):
             else:
                 comm_NO += 1
             time_of_processing += 1
-
-        print(str(command_tuple[0]))
-    print("HERE!!!")
+        if comm_NO < 0 or comm_NO >= len(commands):
+            print("ERROR: An attempt to execute non-existing command no " + comm_NO + ".")
+        # print(str(command_tuple[0]))
+    # print("HERE!!!")
+    print("Machine executing completed. Cost: " + str(time_of_processing) + ".")
 
 
 run_machine('register_code.txt')
-
-'''
-
-void run_machine( std::vector< std::tuple<int,int,int> > & program )
-{
-  std::map<long long,long long> pam;
-
-  long long r[8];
-  int lr;
-
-  long long t;
-
-  std::cout << "Uruchamianie programu." << std::endl;
-  lr = 0;
-  srand( time(NULL) );
-  for(int i = 0; i<8; i++ ) r[i] = rand();
-  t = 0;
-  while( std::get<0>(program[lr])!=HALT )	// HALT
-  {
-    switch( std::get<0>(program[lr]) )
-    {
-      case GET:		std::cout << "? "; std::cin >> r[std::get<1>(program[lr])]; t+=100; lr++; break;
-      case PUT:		std::cout << "> " << r[std::get<1>(program[lr])] << std::endl; t+=100; lr++; break;
-      case LOAD:	r[std::get<1>(program[lr])] = pam[r[0]]; t+=50; lr++; break;
-      case STORE:	pam[r[0]] = r[std::get<1>(program[lr])]; t+=50; lr++; break;
-      case COPY:	r[std::get<1>(program[lr])] = r[std::get<2>(program[lr])] ; t+=5; lr++; break;
-      case ADD:		r[std::get<1>(program[lr])] += r[std::get<2>(program[lr])] ; t+=5; lr++; break;
-      case SUB:		if( r[std::get<1>(program[lr])] >= r[std::get<2>(program[lr])] )
-                          r[std::get<1>(program[lr])] -= r[std::get<2>(program[lr])];
-                        else
-                          r[std::get<1>(program[lr])] = 0;
-                        t+=5; lr++; break;
-      case HALF:	r[std::get<1>(program[lr])] >>= 1; t+=1; lr++; break;
-      case INC:		r[std::get<1>(program[lr])]++ ; t+=1; lr++; break;
-      case DEC:		if( r[std::get<1>(program[lr])]>0 ) r[std::get<1>(program[lr])]--; t+=1; lr++; break;
-      case JUMP: 	lr = std::get<2>(program[lr]); t+=1; break;
-      case JZERO:	if( r[std::get<1>(program[lr])]==0 ) lr = std::get<2>(program[lr]); else lr++; t+=1; break;
-      case JODD:	if( r[std::get<1>(program[lr])] % 2 != 0 ) lr = std::get<2>(program[lr]); else lr++; t+=1; break;
-      default: break;
-    }
-    if( lr<0 || lr>=(int)program.size() )
-    {
-      std::cerr << "Błąd: Wywołanie nieistniejącej instrukcji nr " << lr << "." << std::endl;
-      exit(-1);
-    }
-  }
-  std::cout << "Skończono program (koszt: " << t << ")." << std::endl;
-}
-
-'''

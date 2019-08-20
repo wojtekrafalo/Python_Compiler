@@ -63,13 +63,16 @@ def t_LABEL(t):
     return t
 
 
+def t_COMMENT(t):
+    r'\#.*\n|\#.*$'
+    t.type = "COMMENT"
+    return t
+
+
 t_NEW_LINE = r'\n'
-# TODO: Do something with comments
-t_COMMENT = r'\#.*$'
-t_SPACE = r'[ \t]'
+t_SPACE = r'[ \t]+'
 
 
-# TODO: Make a normal ignoring whitespaces
 def t_error(t):
     r'.'
     # print("Syntax error")

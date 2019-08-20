@@ -1,10 +1,10 @@
-import ply.yacc as yacc
-import ply.lex as lex
+# import ply.yacc as yacc
+# import ply.lex as lex
 import sys
-from src.compiler import grammar_parser
+from src.compiler.compiler import run_compiler
 
-print("HELLO WORLD")
-
+run_compiler('..\\test_files\\test_1.txt')
+print("BYE WORLD")
 
 # def p_error(self, p):
 #     if not p:

@@ -71,3 +71,6 @@ class TokensEnum(Enum):
     NOT = "!"
     LESS_THAN = "<"
     GREATER_THAN = ">"
+
+    def __str__(self):
+        return self.value

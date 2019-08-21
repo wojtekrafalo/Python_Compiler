@@ -1,20 +1,28 @@
 import ply.lex as lex
 from src.compiler.compiler_token_list import tokens as tokens
+from src.compiler.compiler_token_list import TokensEnum
 tokens = tokens
 
 t_ignore = r' \n'
 t_ignore_COMMENT = r'(\[[^\]]*\])'
 
 
+class MyToken:
+    def __init__(self, value, my_type):
+        self.value = value
+        self.token_type = my_type
+
+
 def t_NUMBER(t):
     r'[0-9]+'
-    t.value = int(t.value)
+    num = int(t.value)
+    t.value = MyToken(num, TokensEnum.NUMBER)
     return t
 
 
 def t_IDENTIFIER(t):
     r'[_a-z]+'
-    t.type = 'IDENTIFIER'
+    t.value = MyToken(t.value, TokensEnum.IDENTIFIER)
     return t
 
 

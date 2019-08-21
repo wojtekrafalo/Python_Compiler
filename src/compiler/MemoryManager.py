@@ -41,7 +41,7 @@ class Array:
 
         for i in range(self.size):
             self.init.append(False)
-            self.used_registers.append(None)
+            self.used_registers.append(False)
 
     def is_initialized(self, idx: int):
         if idx > self.idx_snd or idx < self.idx_fst:
@@ -88,11 +88,12 @@ class MemoryManager:
                 array = Array(var[0], first_idx, second_idx, self.next_free_cell)
                 self.arrays.append(array)
                 self.next_free_cell = array.mem_snd + 1
-        # TODO: Delete this print. It is debugging
-        print(self)
+
+        # It is debugging
+        # print(self)
 
     def manage_for(self, variable_tuple):
-        # TODO: for loop index declaring and managing memory for it.
+        # TODO: declaring and managing memory for FOR(i... index.
         pass
 
     def __str__(self):

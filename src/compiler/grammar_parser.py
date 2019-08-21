@@ -1,15 +1,14 @@
 import ply.yacc as yacc
 from src.compiler.grammar_lexer import lexer
 from src.compiler.compiler_token_list import tokens, TokensEnum
-from src.compiler.tree.ConditionNode import ConditionType, ConditionNode
+from src.compiler.tree.ConditionNode import ConditionNode, ConditionType
 from src.compiler.tree.ExpressionNode import ExpressionNode, ExpressionType
-from src.compiler.tree.IdentifierNode import IdentifierType, IdentifierNode
-from src.compiler.tree.MemoryManager import MemoryManager
-from src.compiler.tree.ProgramNode import ProgramNode
-from src.compiler.tree.MemoryManager import DeclarationError
+from src.compiler.tree.IdentifierNode import IdentifierNode, IdentifierType
+from src.compiler.MemoryManager import MemoryManager
+from src.compiler.MemoryManager import DeclarationError
 from src.compiler.RegisterManager import RegisterManager
 from src.compiler.tree.CommandNode import CommandNode, CommandType
-from src.compiler.tree.ValueNode import ValueType, ValueNode
+from src.compiler.tree.ValueNode import ValueNode, ValueType
 
 tokens = tokens
 register_manager = RegisterManager
@@ -28,9 +27,8 @@ def p_program(p):
     """
     program : DECLARE declarations IN commands END
     """
-    print(p[2])
     memory_manager.manage_declared(p[2])
-    p[0] = p[4].commands
+    # p[0] = p[4].commands
 
 
 def p_declarations(p):
@@ -41,10 +39,10 @@ def p_declarations(p):
     """
     try:
         if len(p) == 4:
-            p[1].append(p[2])
+            p[1].append(p[2].value)
             p[0] = p[1]
         elif len(p) == 9:
-            p[1].append((p[2], p[4], p[6]))
+            p[1].append((p[2].value, p[4].value, p[6].value))
             p[0] = p[1]
         elif len(p) == 2:
             p[0] = []
@@ -57,11 +55,16 @@ def p_commands(p):
     commands : commands command
              | command
     """
-    if len(p) == 2:
-        p[0] = p[1]
-    elif len(p) == 3:
-        p[1].add_command(p[2])
-        p[0] = p[1]
+    # if len(p) == 2:
+    #     print("COMM: " + str(p[1]))
+    # else:
+    #     print("COMMs: " + str(p[1]) + "COMM: " + str(p[2]))
+
+    # if len(p) == 2:
+    #     p[0] = p[1]
+    # elif len(p) == 3:
+    #     p[1].add_command(p[2])
+    #     p[0] = p[1]
 
 
 def p_command(p):
@@ -91,7 +94,7 @@ def p_command(p):
         p[0] = CommandNode(CommandType.DO_WHILE, [p[2], p[4]])
 
     if p[1] == TokensEnum.FOR and p[3] == TokensEnum.FROM and p[7] == TokensEnum.DO and p[9] == TokensEnum.ENDFOR:
-        tup = [p[2], p[4], p[6], p[8]]
+        tup = [p[2].value, p[4], p[6], p[8]]
         if p[5] == TokensEnum.TO:
             p[0] = CommandNode(CommandType.FOR_TO, tup)
         elif p[5] == TokensEnum.DOWNTO:
@@ -159,10 +162,10 @@ def p_value(p):
     value : NUMBER
           | IDENTIFIER
     """
-    if p[1].type == TokensEnum.NUMBER:
-        p[0] = ValueNode(ValueType.NUMBER, p[1])
-    elif p[1].type == TokensEnum.IDENTIFIER:
-        p[0] = ValueNode(ValueType.IDENTIFIER, p[1])
+    if p[1].token_type == TokensEnum.NUMBER:
+        p[0] = ValueNode(ValueType.NUMBER, p[1].value)
+    elif p[1].token_type == TokensEnum.IDENTIFIER:
+        p[0] = ValueNode(ValueType.IDENTIFIER, p[1].value)
 
 
 def p_identifier(p):
@@ -172,11 +175,11 @@ def p_identifier(p):
                | IDENTIFIER BRACKET_LEFT NUMBER BRACKET_RIGHT
     """
     if len(p) == 2:
-        p[0] = IdentifierNode(IdentifierType.VARIABLE, p[1])
-    elif len(p) == 5 and p[3].type == TokensEnum.IDENTIFIER:
-        p[0] = IdentifierNode(IdentifierType.ARRAY_VARIABLE, [p[1], p[3]])
-    elif len(p) == 5 and p[3].type == TokensEnum.NUMBER:
-        p[0] = IdentifierNode(IdentifierType.ARRAY_VALUE, [p[1], p[3]])
+        p[0] = IdentifierNode(IdentifierType.VARIABLE, p[1].value)
+    elif len(p) == 5 and p[3].token_type == TokensEnum.IDENTIFIER:
+        p[0] = IdentifierNode(IdentifierType.ARRAY_VARIABLE, [p[1].value, p[3].value])
+    elif len(p) == 5 and p[3].token_type == TokensEnum.NUMBER:
+        p[0] = IdentifierNode(IdentifierType.ARRAY_VALUE, [p[1].value, p[3].value])
 
 
 def p_empty(p):

@@ -7,7 +7,8 @@ from src.compiler.tree.IdentifierNode import IdentifierNode, IdentifierType
 from src.compiler.MemoryManager import memory_manager
 from src.compiler.MemoryManager import DeclarationError
 from src.compiler.RegisterManager import register_manager
-from src.compiler.tree.CommandNode import CommandNode, CommandType, build_commands
+from src.compiler.tree.CommandNode import CommandNode, CommandType
+from src.compiler.tree.ProgramNode import ProgramNode
 from src.compiler.tree.ValueNode import ValueNode, ValueType
 from src.compiler.grammar_lexer import MyToken
 
@@ -27,8 +28,10 @@ def p_program(p):
     program : DECLARE declarations IN commands END
     """
     memory_manager.manage_declared(p[2])
-    build_commands(p[4])
-    # p[0] = p[4].commands
+    # build_commands(p[4])
+    program = ProgramNode(memory_manager, p[4])
+    print(program)
+
 
 
 def p_declarations(p):

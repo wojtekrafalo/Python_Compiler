@@ -32,9 +32,9 @@ class IdentifierNode:
 
     def __str__(self):
         if self.array_index:
-            return "ID: < " + str(self.identifier_type) + ": " + str(self.identifier_name) + "(" + str(self.array_index) + ") >"
+            return "Id: < " + str(self.identifier_type) + ": " + str(self.identifier_name) + "(" + str(self.array_index) + ") >"
         else:
-            return "ID: < " + str(self.identifier_type) + ": " + str(self.identifier_name) + " >"
+            return "Id: < " + str(self.identifier_type) + ": " + str(self.identifier_name) + " >"
 
 # def make_number_commands(self, number: int):
 #     set_0 = number

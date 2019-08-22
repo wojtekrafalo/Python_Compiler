@@ -28,4 +28,7 @@ class ValueNode:
         pass
 
     def __str__(self):
-        return "Val: ( " + str(self.value_type) + ": " + str(self.value_data) + ")"
+        if self.value_type == ValueType.IDENTIFIER:
+            return "Val: ( " + str(self.value_data) + ")"
+        else:
+            return "Val: ( " + str(self.value_type) + ": " + str(self.value_data) + ")"

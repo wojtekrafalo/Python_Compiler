@@ -16,31 +16,49 @@ class OperationType(Enum):
 class Register:
     is_free: bool
     operation_type: OperationType
+    name_int: int
+    name_str: str
     value: int
 
-    def __init__(self, value: int = 0):
-        self.value = value
+    def __init__(self, name: int):
+        self.name_int = name
+        self.name_str = parse_register_to_str(name)
+        self.value = 0
         self.free()
 
+    # TODO: add to the RegisterManager a set of registered registers and in this method delete this register.
     def free(self):
         self.is_free = True
         self.operation_type = OperationType.IS_FREE
 
 
+class NotEnoughRegistersError(Exception):
+    message = "Not enough registers."
+
+
 class RegisterManager:
-    free_registers: [Register]
-    registers: [Register]
+    free_registers: [Register] = []
+    registers: [Register] = []
 
     def __init__(self, number_of_registers=8):
         for i in range(number_of_registers):
             self.registers.append(Register(i))
 
-    def get_free_registers(self):
-        free_registers = [Register]
+    def get_free_registers(self, how_many: int):
+        free_registers = []
+        number = 0
         for reg in self.registers:
             if reg.is_free:
                 free_registers.append(reg)
-        return free_registers
+                number += 1
+                if how_many == number:
+                    for regis in free_registers:
+                        regis.is_free = False
+                    if how_many == 1:
+                        return free_registers[0]
+                    else:
+                        return free_registers
+        raise NotEnoughRegistersError()
 
 
 def parse_register_to_str(reg: int) -> str:
@@ -79,3 +97,6 @@ def parse_register_to_int(reg: str) -> int:
         return 6
     if reg == "H":
         return 7
+
+
+register_manager = RegisterManager()

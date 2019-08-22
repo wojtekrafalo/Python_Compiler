@@ -4,15 +4,14 @@ from src.compiler.compiler_token_list import tokens, TokensEnum
 from src.compiler.tree.ConditionNode import ConditionNode, ConditionType
 from src.compiler.tree.ExpressionNode import ExpressionNode, ExpressionType
 from src.compiler.tree.IdentifierNode import IdentifierNode, IdentifierType
-from src.compiler.MemoryManager import MemoryManager
+from src.compiler.MemoryManager import memory_manager
 from src.compiler.MemoryManager import DeclarationError
-from src.compiler.RegisterManager import RegisterManager
-from src.compiler.tree.CommandNode import CommandNode, CommandType
+from src.compiler.RegisterManager import register_manager
+from src.compiler.tree.CommandNode import CommandNode, CommandType, build_commands
 from src.compiler.tree.ValueNode import ValueNode, ValueType
+from src.compiler.grammar_lexer import MyToken
 
 tokens = tokens
-register_manager = RegisterManager
-memory_manager = MemoryManager()
 
 
 def p_error(p):
@@ -28,6 +27,7 @@ def p_program(p):
     program : DECLARE declarations IN commands END
     """
     memory_manager.manage_declared(p[2])
+    build_commands(p[4])
     # p[0] = p[4].commands
 
 
@@ -60,11 +60,11 @@ def p_commands(p):
     # else:
     #     print("COMMs: " + str(p[1]) + "COMM: " + str(p[2]))
 
-    # if len(p) == 2:
-    #     p[0] = p[1]
-    # elif len(p) == 3:
-    #     p[1].add_command(p[2])
-    #     p[0] = p[1]
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 3:
+        p[1].append(p[2])
+        p[0] = p[1]
 
 
 def p_command(p):
@@ -79,12 +79,16 @@ def p_command(p):
             | READ identifier SEMICOLON
             | WRITE value SEMICOLON
     """
-    if str(p[2]) == str(TokensEnum.COLON) and str(p[3]) == str(TokensEnum.EQUALS) and str(p[5]) == str(TokensEnum.SEMICOLON):
+    if str(p[2]) == str(TokensEnum.COLON) and str(p[3]) == str(TokensEnum.EQUALS) and str(p[5]) == str(
+            TokensEnum.SEMICOLON):
         p[0] = CommandNode(CommandType.ASSIGNMENT, [p[1], p[4]])
 
-    if str(p[1]) == str(TokensEnum.IF) and str(p[3]) == str(TokensEnum.THEN) and str(p[5]) == str(TokensEnum.ELSE) and str(p[7]) == str(TokensEnum.ENDIF):
+    if str(p[1]) == str(TokensEnum.IF) and str(p[3]) == str(TokensEnum.THEN) and \
+            str(p[5]) == str(TokensEnum.ELSE) and str(p[7]) == str(TokensEnum.ENDIF):
         p[0] = CommandNode(CommandType.IF_ELSE, [p[2], p[4], p[6]])
-    if str(p[1]) == str(TokensEnum.IF) and str(p[3]) == str(TokensEnum.THEN) and str(p[5]) == str(TokensEnum.ELSE) and str(p[7]) == str(TokensEnum.ENDIF) and str(p[5]) == str(TokensEnum.ENDIF):
+
+    if str(p[1]) == str(TokensEnum.IF) and str(p[3]) == str(TokensEnum.THEN) and \
+            str(p[5]) == str(TokensEnum.ENDIF):
         p[0] = CommandNode(CommandType.IF, [p[2], p[4]])
 
     if str(p[1]) == str(TokensEnum.WHILE) and str(p[3]) == str(TokensEnum.DO) and str(p[5]) == str(TokensEnum.ENDWHILE):
@@ -93,7 +97,8 @@ def p_command(p):
     if str(p[1]) == str(TokensEnum.DO) and str(p[3]) == str(TokensEnum.WHILE) and str(p[5]) == str(TokensEnum.ENDDO):
         p[0] = CommandNode(CommandType.DO_WHILE, [p[2], p[4]])
 
-    if str(p[1]) == str(TokensEnum.FOR) and str(p[3]) == str(TokensEnum.FROM) and str(p[7]) == str(TokensEnum.DO) and str(p[9]) == str(TokensEnum.ENDFOR):
+    if str(p[1]) == str(TokensEnum.FOR) and str(p[3]) == str(TokensEnum.FROM) and str(p[7]) == str(
+            TokensEnum.DO) and str(p[9]) == str(TokensEnum.ENDFOR):
         tup = [p[2].value, p[4], p[6], p[8]]
         if str(p[5]) == str(TokensEnum.TO):
             p[0] = CommandNode(CommandType.FOR_TO, tup)
@@ -119,17 +124,16 @@ def p_expression(p):
     if len(p) == 2:
         p[0] = ExpressionNode(ExpressionType.NONE, p[1])
     else:
-        data = [p[1], p[3]]
         if str(p[2]) == str(TokensEnum.PLUS):
-            p[0] = ExpressionNode(ExpressionType.ADDITION, data)
+            p[0] = ExpressionNode(ExpressionType.ADDITION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.MINUS):
-            p[0] = ExpressionNode(ExpressionType.SUBSTRACTION, data)
+            p[0] = ExpressionNode(ExpressionType.SUBSTRACTION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.MULTIPLY):
-            p[0] = ExpressionNode(ExpressionType.MULTIPLICATION, data)
+            p[0] = ExpressionNode(ExpressionType.MULTIPLICATION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.DIVIDE):
-            p[0] = ExpressionNode(ExpressionType.DIVISION, data)
+            p[0] = ExpressionNode(ExpressionType.DIVISION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.MODULO):
-            p[0] = ExpressionNode(ExpressionType.MODULATION, data)
+            p[0] = ExpressionNode(ExpressionType.MODULATION, p[1], p[3])
 
 
 def p_condition(p):
@@ -141,30 +145,29 @@ def p_condition(p):
               | value LESS_THAN EQUALS value
               | value GREATER_THAN EQUALS value
     """
-    data = [p[1], p[3]]
     if str(p[2]) == str(TokensEnum.EQUALS):
-        p[0] = ConditionNode(ConditionType.EQUALS, data)
+        p[0] = ConditionNode(ConditionType.EQUALS, p[1], p[3])
     if str(p[2]) == str(TokensEnum.NOT) and str(p[3]) == str(TokensEnum.EQUALS):
-        p[0] = ConditionNode(ConditionType.NOT_EQUALS, [p[1], p[4]])
+        p[0] = ConditionNode(ConditionType.NOT_EQUALS, p[1], p[4])
     if str(p[2]) == str(TokensEnum.LESS_THAN):
-        p[0] = ConditionNode(ConditionType.LESS_THAN, data)
+        p[0] = ConditionNode(ConditionType.LESS_THAN, p[1], p[3])
     if str(p[2]) == str(TokensEnum.GREATER_THAN):
-        p[0] = ConditionNode(ConditionType.GREATER_THAN, data)
+        p[0] = ConditionNode(ConditionType.GREATER_THAN, p[1], p[3])
     if str(p[2]) == str(TokensEnum.LESS_THAN) and str(p[3]) == str(TokensEnum.EQUALS):
-        p[0] = ConditionNode(ConditionType.LESS_EQUALS_THAN, [p[1], p[4]])
+        p[0] = ConditionNode(ConditionType.LESS_EQUALS_THAN, p[1], p[4])
     if str(p[2]) == str(TokensEnum.GREATER_THAN) and str(p[3]) == str(TokensEnum.EQUALS):
-        p[0] = ConditionNode(ConditionType.GREATER_EQUALS_THAN, [p[1], p[4]])
+        p[0] = ConditionNode(ConditionType.GREATER_EQUALS_THAN, p[1], p[4])
 
 
 def p_value(p):
     """
     value : NUMBER
-          | IDENTIFIER
+          | identifier
     """
-    if p[1].token_type == TokensEnum.NUMBER:
+    if isinstance(p[1], MyToken):
         p[0] = ValueNode(ValueType.NUMBER, p[1].value)
-    elif p[1].token_type == TokensEnum.IDENTIFIER:
-        p[0] = ValueNode(ValueType.IDENTIFIER, p[1].value)
+    if isinstance(p[1], IdentifierNode):
+        p[0] = ValueNode(ValueType.IDENTIFIER, p[1])
 
 
 def p_identifier(p):
@@ -176,9 +179,9 @@ def p_identifier(p):
     if len(p) == 2:
         p[0] = IdentifierNode(IdentifierType.VARIABLE, p[1].value)
     elif len(p) == 5 and p[3].token_type == TokensEnum.IDENTIFIER:
-        p[0] = IdentifierNode(IdentifierType.ARRAY_VARIABLE, [p[1].value, p[3].value])
+        p[0] = IdentifierNode(IdentifierType.ARRAY_VARIABLE, p[1].value, p[3].value)
     elif len(p) == 5 and p[3].token_type == TokensEnum.NUMBER:
-        p[0] = IdentifierNode(IdentifierType.ARRAY_VALUE, [p[1].value, p[3].value])
+        p[0] = IdentifierNode(IdentifierType.ARRAY_VALUE, p[1].value, p[3].value)
 
 
 def p_empty(p):
@@ -194,3 +197,11 @@ parser = yacc.yacc()
 def print_error_message(err):
     print("Error at line: " + str(lexer.lineno) + "\n" + err.message.format(err))
     exit(-1)
+
+
+# def get_register_manager():
+#     return register_manager
+#
+#
+# def get_memory_manager():
+#     return memory_manager

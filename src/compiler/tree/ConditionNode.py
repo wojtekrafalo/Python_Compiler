@@ -2,15 +2,23 @@ from enum import Enum
 
 
 class ConditionType(Enum):
-    EQUALS = 0
-    NOT_EQUALS = 1
-    GREATER_THAN = 2
-    LESS_THAN = 3
-    GREATER_EQUALS_THAN = 4
-    LESS_EQUALS_THAN = 5
+    EQUALS = "="
+    NOT_EQUALS = "!="
+    GREATER_THAN = ">"
+    LESS_THAN = "<"
+    GREATER_EQUALS_THAN = ">="
+    LESS_EQUALS_THAN = "<="
+
+    def __str__(self):
+        return self.value
 
 
 class ConditionNode:
 
-    def __init__(self, command_type: ConditionType, condition_data):
-        pass
+    def __init__(self, cond_type: ConditionType, value_1, value_2):
+        self.cond_type = cond_type
+        self.value_1 = value_1
+        self.value_2 = value_2
+
+    def __str__(self):
+        return "Cond: [ " + str(self.cond_type) + ": " + str(self.value_1) + ", " + str(self.value_2) + " ]"

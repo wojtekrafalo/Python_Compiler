@@ -7,4 +7,4 @@ class ProgramNode:
         return self.commandsNode.get_machine_code
 
     def __str__(self):
-        return "Program: (" + str(self.declarationsNode) + "; " + str(self.commandsNode) + ")"
+        return "Program: /*" + str(self.declarationsNode) + "; " + str(self.commandsNode) + "*/"

@@ -1,5 +1,8 @@
 from enum import Enum
 
+from src.compiler.tree.CommandNode import CommandType
+from src.compiler.tree.IdentifierNode import IdentifierType
+
 
 class Variable:
     def __init__(self, name: str, mem_idx: int):
@@ -14,16 +17,6 @@ class Variable:
             return self.used_register
         else:
             return False
-
-
-class OutOfBoundError(Exception):
-    message = "Index out of bound"
-    pass
-
-
-class VariableUndeclaredError(Exception):
-    message = "Undeclared variable"
-    pass
 
 
 class Array:
@@ -44,13 +37,13 @@ class Array:
             self.used_registers.append(False)
 
     def is_initialized(self, idx: int):
-        if idx > self.idx_snd or idx < self.idx_fst:
+        if not self.is_in_bound(idx):
             raise OutOfBoundError()
         else:
             return self.init[idx-self.idx_fst]
 
     def initialize(self, idx: int):
-        if idx > self.idx_snd or idx < self.idx_fst:
+        if not self.is_in_bound(idx):
             raise OutOfBoundError()
         else:
             self.init[idx - self.idx_fst] = True
@@ -62,10 +55,13 @@ class Array:
             return False
 
     def memory_idx(self, idx: int):
-        if idx > self.idx_snd or idx < self.idx_fst:
+        if not self.is_in_bound(idx):
             raise OutOfBoundError()
         else:
             return self.mem_fst + idx - self.idx_fst
+
+    def is_in_bound(self, idx: int):
+        return self.idx_fst <= idx <= self.idx_snd
 
 
 class MemoryManager:
@@ -91,9 +87,31 @@ class MemoryManager:
 
         # It is debugging
         # print(self)
+    # TODO: The problem is that methods like this are called before declared variables. Calling methods before tokens in parser fit is required. It is quite difficult to go around
+    def is_declared(self, identifier_type: IdentifierType, data):
+        print("Check: " + data + "\n" + self.__str__())
+        if identifier_type == IdentifierType.VARIABLE:
+            for var in self.variables:
+                if var.name == data:
+                    return var
+            for arr in self.arrays:
+                if arr.name == data:
+                    raise ArrayUsedAsVariableError()
+            raise VariableUndeclaredError()
+        elif identifier_type == IdentifierType.ARRAY_VALUE:
+            for arr in self.arrays:
+                if arr.name == data[0]:
+                    if not arr.is_in_bound(data[1]):
+                        raise OutOfBoundError()
+                    else:
+                        return arr
+            for var in self.variables:
+                if var.name == data[0]:
+                    raise ArrayUndeclaredError()
+            raise VariableUsedAsArrayError()
 
-    def manage_for(self, variable_tuple):
-        # TODO: declaring and managing memory for FOR(i... index.
+    def manage_for_block(self, block_type: CommandType, variable_tuple):
+        # TODO: declaring and managing memory for big blocks if there is not enough registers to hold loop iterator or block condition result.
         pass
 
     def __str__(self):
@@ -129,6 +147,28 @@ def validate_declarations(variables_map):
                     raise DeclarationError(DecError.ARRAY_NUMERATION, [variables_map[2], variables_map[4], variables_map[6]])
 
 
+class VariableUsedAsArrayError(Exception):
+    message = "Variable used as an array."
+
+
+class ArrayUsedAsVariableError(Exception):
+    message = "Index of array not specified."
+
+
+class ArrayUndeclaredError(Exception):
+    pass
+
+
+class OutOfBoundError(Exception):
+    message = "Index out of bound"
+    pass
+
+
+class VariableUndeclaredError(Exception):
+    message = "Undeclared variable"
+    pass
+
+
 class DeclarationError(Exception):
     message = "None message"
 
@@ -142,3 +182,6 @@ class DeclarationError(Exception):
 class DecError(Enum):
     DUPLICATED_NAME = 1
     ARRAY_NUMERATION = 2
+
+
+memory_manager = MemoryManager()

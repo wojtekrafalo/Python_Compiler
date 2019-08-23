@@ -14,20 +14,22 @@ class OperationType(Enum):
 
 
 class Register:
-    is_free: bool
-    operation_type: OperationType
-    name_int: int
-    name_str: str
-    value: int
+    # is_free: bool
+    # operation_type: OperationType
+    # name_int: int
+    # name_str: str
+    # value: int
 
-    def __init__(self, name: int):
+    # TODO: Add to constructor type of the operation.
+    def __init__(self, name: int, operation_type: OperationType = None):
         self.name_int = name
         self.name_str = parse_register_to_str(name)
         self.value = 0
         self.free()
+        self.is_free = True
+        self.operation_type = operation_type
 
-    # TODO: add to the RegisterManager a set of registered registers and in this method delete this register.
-    def free(self):
+    def free(self) -> None:
         self.is_free = True
         self.operation_type = OperationType.IS_FREE
 
@@ -37,30 +39,48 @@ class NotEnoughRegistersError(Exception):
 
 
 class RegisterManager:
-    free_registers: [Register] = []
     registers: [Register] = []
+    main_reg_name = "A"
 
-    def __init__(self, number_of_registers=8):
+    def __init__(self, number_of_registers: int = 8):
         for i in range(number_of_registers):
             self.registers.append(Register(i))
 
-    def get_free_registers(self, how_many: int):
-        free_registers = []
-        number = 0
+    def get_free_registers(self, how_many: int = 1) -> [Register]:
+        free_registers: [Register] = []
+        number: int = 0
         for reg in self.registers:
-            if reg.is_free:
+            if reg.is_free and not reg.name_str == self.main_reg_name:
                 free_registers.append(reg)
                 number += 1
                 if how_many == number:
-                    for regis in free_registers:
-                        regis.is_free = False
+                    for reg_f in free_registers:
+                        reg_f.is_free = False
                     if how_many == 1:
                         return free_registers[0]
                     else:
                         return free_registers
         raise NotEnoughRegistersError()
 
+    # TODO: I think if I can add some [registered_registers] field at RegisterManager class and in this method delete this registers.
+    def release_registers(self, *regs: [Register]) -> None:
+        for r in regs:
+            r.free()
 
+    # TODO: some validation if A register is released or not.
+    def get_reg_a(self) -> Register:
+        for r in self.registers:
+            if r.name_str == self.main_reg_name:
+                return r
+        raise NotARegisterError
+
+
+class NotARegisterError(Exception):
+    # message = "Register \'A\' is required."
+    message = "Register \'" + RegisterManager.main_reg_name + "\' is required."
+
+
+# TODO: Probably unnecessary
 def parse_register_to_str(reg: int) -> str:
     if reg == 0:
         return "A"
@@ -80,6 +100,7 @@ def parse_register_to_str(reg: int) -> str:
         return "H"
 
 
+# TODO: Probably unnecessary
 def parse_register_to_int(reg: str) -> int:
     if reg == "A":
         return 0

@@ -19,8 +19,8 @@ class CommandType(Enum):
         return self.value
 
 
-def str_comms(comms):
-    ret = ""
+def str_comms(comms: [RegisterCommand]):
+    ret: str = ""
     for comm in comms:
         ret += str(comm)
     return ret
@@ -29,6 +29,7 @@ def str_comms(comms):
 class CommandNode:
     commands: [RegisterCommand] = []
 
+    # TODO: I'm not sure if I can use class CommandNode or I rather should declare different classes for each command type, extending from CommandNode instead ... The type of command_data is not clear.
     def __init__(self, command_type: CommandType, command_data):
         self.command_type = command_type
         self.command_data = command_data

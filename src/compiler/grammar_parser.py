@@ -11,7 +11,6 @@ from src.compiler.tree.CommandNode import CommandNode, CommandType
 from src.compiler.tree.ProgramNode import ProgramNode
 from src.compiler.tree.ValueNode import ValueNode, ValueType
 from src.compiler.grammar_lexer import MyToken
-
 tokens = tokens
 
 
@@ -28,10 +27,8 @@ def p_program(p):
     program : DECLARE declarations IN commands END
     """
     memory_manager.manage_declared(p[2])
-    # build_commands(p[4])
-    program = ProgramNode(memory_manager, p[4])
+    program = ProgramNode(memory_manager, register_manager, p[4])
     print(program)
-
 
 
 def p_declarations(p):
@@ -58,10 +55,6 @@ def p_commands(p):
     commands : commands command
              | command
     """
-    # if len(p) == 2:
-    #     print("COMM: " + str(p[1]))
-    # else:
-    #     print("COMMs: " + str(p[1]) + "COMM: " + str(p[2]))
 
     if len(p) == 2:
         p[0] = [p[1]]
@@ -130,7 +123,7 @@ def p_expression(p):
         if str(p[2]) == str(TokensEnum.PLUS):
             p[0] = ExpressionNode(ExpressionType.ADDITION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.MINUS):
-            p[0] = ExpressionNode(ExpressionType.SUBSTRACTION, p[1], p[3])
+            p[0] = ExpressionNode(ExpressionType.SUBTRACTION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.MULTIPLY):
             p[0] = ExpressionNode(ExpressionType.MULTIPLICATION, p[1], p[3])
         if str(p[2]) == str(TokensEnum.DIVIDE):
@@ -200,11 +193,3 @@ parser = yacc.yacc()
 def print_error_message(err):
     print("Error at line: " + str(lexer.lineno) + "\n" + err.message.format(err))
     exit(-1)
-
-
-# def get_register_manager():
-#     return register_manager
-#
-#
-# def get_memory_manager():
-#     return memory_manager

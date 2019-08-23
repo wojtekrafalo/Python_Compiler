@@ -1,30 +1,32 @@
 from enum import Enum
 
+from src.compiler.RegisterManager import Register
 from src.compiler.tree.CommandNode import CommandType
 from src.compiler.tree.IdentifierNode import IdentifierType
 
 
 class Variable:
     def __init__(self, name: str, mem_idx: int):
-        self.structure_type = DataStructure.VAR
         self.name = name
         self.memory_idx = mem_idx
         self.is_initialized = False
         self.used_register = None
 
-    def is_held(self):
+    def is_held(self) -> Register or False:
         if self.used_register:
             return self.used_register
         else:
             return False
 
+    def initialize(self) -> None:
+        self.is_initialized = True
+
 
 class Array:
-    init = []
-    used_registers = []
+    init: [bool] = []
+    used_registers: [Register or False] = []
 
     def __init__(self, name: str, idx_fst: int, idx_snd: int, mem_fst: int):
-        self.structure_type = DataStructure.ARR
         self.name = name
         self.idx_fst = idx_fst
         self.idx_snd = idx_snd
@@ -36,43 +38,39 @@ class Array:
             self.init.append(False)
             self.used_registers.append(False)
 
-    def is_initialized(self, idx: int):
+    def is_initialized(self, idx: int) -> bool:
         if not self.is_in_bound(idx):
             raise OutOfBoundError()
         else:
             return self.init[idx-self.idx_fst]
 
-    def initialize(self, idx: int):
+    def initialize(self, idx: int) -> None:
         if not self.is_in_bound(idx):
             raise OutOfBoundError()
         else:
             self.init[idx - self.idx_fst] = True
 
-    def is_held(self, idx: int):
-        if self.used_registers[idx - self.idx_fst]:
-            return self.used_registers[idx - self.idx_fst]
-        else:
-            return False
+    def is_held(self, idx: int) -> Register or False:
+        return self.used_registers[idx - self.idx_fst]
 
-    def memory_idx(self, idx: int):
+    def memory_idx(self, idx: int) -> int:
         if not self.is_in_bound(idx):
             raise OutOfBoundError()
         else:
             return self.mem_fst + idx - self.idx_fst
 
-    def is_in_bound(self, idx: int):
+    def is_in_bound(self, idx: int) -> bool:
         return self.idx_fst <= idx <= self.idx_snd
 
 
 class MemoryManager:
-    next_free_cell: int
     arrays: [Array] = []
     variables: [Variable] = []
 
     def __init__(self):
         self.next_free_cell = 0
 
-    def manage_declared(self, variable_list):
+    def manage_declared(self, variable_list: list) -> None:
         validate_declarations(variable_list)
         for var in variable_list:
             if len(var) == 1:
@@ -107,8 +105,30 @@ class MemoryManager:
                         return arr
             for var in self.variables:
                 if var.name == data[0]:
-                    raise ArrayUndeclaredError()
-            raise VariableUsedAsArrayError()
+                    raise VariableUsedAsArrayError()
+            raise ArrayUndeclaredError()
+        elif identifier_type == IdentifierType.ARRAY_VARIABLE:
+            for arr in self.arrays:
+                if arr.name == data[0]:
+                    return arr
+            for var in self.variables:
+                if var.name == data[0]:
+                    raise VariableUsedAsArrayError()
+            raise ArrayUndeclaredError()
+
+    def is_initialized(self, identifier_type: IdentifierType, data):
+        var_tup = self.is_declared(identifier_type, data)
+        if identifier_type == IdentifierType.VARIABLE:
+            return var_tup.is_initialized
+        elif identifier_type == IdentifierType.ARRAY_VALUE:
+            return var_tup.is_initialized(data[1])
+
+    def initialize(self, identifier_type: IdentifierType, data):
+        var_tup = self.is_declared(identifier_type, data)
+        if identifier_type == IdentifierType.VARIABLE:
+            return var_tup.is_initialized
+        elif identifier_type == IdentifierType.ARRAY_VALUE:
+            return var_tup.is_initialized(data[1])
 
     def manage_for_block(self, block_type: CommandType, variable_tuple):
         # TODO: declaring and managing memory for big blocks if there is not enough registers to hold loop iterator or block condition result.
@@ -126,14 +146,6 @@ class MemoryManager:
                    str(arr.idx_snd) + ", " + str(arr.mem_fst) + ", " +\
                    str(arr.mem_snd) + ", " + str(arr.init) + ", " + str(arr.used_registers) + ") "
         return sss + "} >>  next_free_cell: " + str(self.next_free_cell)
-
-
-class DataStructure(Enum):
-    VAR = "var"
-    ARR = "arr"
-
-    def __str__(self):
-        return self.value
 
 
 def validate_declarations(variables_map):
